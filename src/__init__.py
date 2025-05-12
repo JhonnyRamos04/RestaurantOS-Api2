@@ -5,6 +5,8 @@ from flask_cors import CORS
 # ============ app imports ========
 from src.config.config import ProductionConfig, DevelopmentConfig, TestingConfig
 from src.db.connection import init_db
+from src.routes.auth_routes import auth_bp
+from src.routes.protected_routes import protected_bp
 from src.routes.status_routes import status_bp
 from src.routes.role_routes import role_bp
 from src.routes.category_routes import category_bp
@@ -17,6 +19,7 @@ from src.routes.payment_method_routes import payment_method_bp
 from src.routes.sale_routes import sale_bp
 from src.routes.user_routes import user_bp
 from src.config.cors_config import get_cors_config
+from src.jwt.jwt import init_jwt
 import os
 
 def create_app():
@@ -31,6 +34,7 @@ def create_app():
         app.config.from_object(DevelopmentConfig)
     
     init_db(app)
+    init_jwt(app)
 
     CORS(app, resources=get_cors_config(env))
 
@@ -49,5 +53,7 @@ def create_app():
         app.register_blueprint(payment_method_bp, url_prefix='/payment-methods')
         app.register_blueprint(sale_bp, url_prefix='/sales')
         app.register_blueprint(user_bp, url_prefix='/users')
+        app.register_blueprint(protected_bp)
+        app.register_blueprint(auth_bp)
 
     return app
