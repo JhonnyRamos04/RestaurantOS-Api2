@@ -48,3 +48,56 @@ def create_status():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+# ==================== Status PUT Controller ====================
+
+def update_status(id_status):
+    """Update an existing status"""
+    try:
+        status = Status.query.get(id_status)
+        if not status:
+            return jsonify({"error": "Status not found"}), 404
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        # Update fields if provided
+        if 'name' in data:
+            status.name = data['name']
+        if 'description' in data:
+            status.description = data['description']
+            
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Status updated successfully",
+            "status": status.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    
+# ==================== Status DELETE Controller ====================
+def delete_status(id_status):
+    """Delete a status"""
+    try:
+        status = Status.query.get(id_status)
+        if not status:
+            return jsonify({"error": "Status not found"}), 404
+            
+        # Check if status is being used
+        if status.menus or status.tables or status.orders:
+            return jsonify({"error": "Cannot delete status that is in use"}), 400
+            
+        db.session.delete(status)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Status deleted successfully"
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

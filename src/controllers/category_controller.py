@@ -49,3 +49,59 @@ def create_category():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+# ==================== Category PUT Controller ====================
+
+def update_category(id_category):
+    """Update an existing category"""
+    try:
+        category = Category.query.get(id_category)
+        if not category:
+            return jsonify({"error": "Category not found"}), 404
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        # Update fields if provided
+        if 'name' in data:
+            category.name = data['name']
+        if 'description' in data:
+            category.description = data['description']
+        if 'image_url' in data:
+            category.image_url = data['image_url']
+            
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Category updated successfully",
+            "category": category.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# ==================== Category DELETE Controller ====================
+
+def delete_category(id_category):
+    """Delete a category"""
+    try:
+        category = Category.query.get(id_category)
+        if not category:
+            return jsonify({"error": "Category not found"}), 404
+            
+        # Check if category is being used
+        if category.menus:
+            return jsonify({"error": "Cannot delete category that has menu items"}), 400
+            
+        db.session.delete(category)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Category deleted successfully"
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

@@ -30,6 +30,7 @@ def get_active_payment_methods():
         return jsonify({"error": str(e)}), 500
 
 # ==================== Payment Method POST Controller ====================
+
 def create_payment_method():
     """Create a new payment method"""
     try:
@@ -56,6 +57,62 @@ def create_payment_method():
             "message": "Payment method created successfully",
             "payment_method": new_method.to_dict()
         }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# ==================== Payment Method PUT Controller ====================
+
+def update_payment_method(id_payment_method):
+    """Update an existing payment method"""
+    try:
+        method = PaymentMethod.query.get(id_payment_method)
+        if not method:
+            return jsonify({"error": "Payment method not found"}), 404
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        # Update fields if provided
+        if 'name' in data:
+            method.name = data['name']
+        if 'description' in data:
+            method.description = data['description']
+        if 'active' in data:
+            method.active = data['active']
+            
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Payment method updated successfully",
+            "payment_method": method.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# ==================== Payment Method DELETE Controller ====================
+
+def delete_payment_method(id_payment_method):
+    """Delete a payment method"""
+    try:
+        method = PaymentMethod.query.get(id_payment_method)
+        if not method:
+            return jsonify({"error": "Payment method not found"}), 404
+            
+        # Check if payment method is being used in sales
+        if method.sales:
+            return jsonify({"error": "Cannot delete payment method that is used in sales"}), 400
+            
+        db.session.delete(method)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Payment method deleted successfully"
+        }), 200
         
     except Exception as e:
         db.session.rollback()

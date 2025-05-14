@@ -48,6 +48,7 @@ def get_popular_menus(limit=10):
         return jsonify({"error": str(e)}), 500
 
 # ==================== Menu POST Controller ====================
+
 def create_menu():
     """Create a new menu item"""
     try:
@@ -90,6 +91,91 @@ def create_menu():
             "message": "Menu item created successfully",
             "menu": new_menu.to_dict()
         }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    
+# ==================== Menu PUT Controller ====================
+
+def update_menu(id_menu):
+    """Update an existing menu item"""
+    try:
+        menu = Menu.query.get(id_menu)
+        if not menu:
+            return jsonify({"error": "Menu item not found"}), 404
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        # Update fields if provided
+        if 'name' in data:
+            menu.name = data['name']
+        if 'id_category' in data:
+            menu.id_category = data['id_category']
+        if 'id_status' in data:
+            menu.id_status = data['id_status']
+        if 'price' in data:
+            menu.price = data['price']
+        if 'description' in data:
+            menu.description = data['description']
+        if 'cost' in data:
+            menu.cost = data['cost']
+        if 'popularity' in data:
+            menu.popularity = data['popularity']
+        if 'stock' in data:
+            menu.stock = data['stock']
+        if 'availability' in data:
+            menu.availability = data['availability']
+            
+        # Handle allergens if provided
+        if 'allergens' in data and isinstance(data['allergens'], list):
+            # Remove existing allergens
+            MenuAllergen.query.filter_by(id_menu=id_menu).delete()
+            
+            # Add new allergens
+            for allergen_id in data['allergens']:
+                menu_allergen = MenuAllergen(
+                    id_menu=id_menu,
+                    id_allegers=allergen_id
+                )
+                db.session.add(menu_allergen)
+                
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Menu item updated successfully",
+            "menu": menu.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# ==================== Menu DELETE Controller ====================
+
+def delete_menu(id_menu):
+    """Delete a menu item"""
+    try:
+        menu = Menu.query.get(id_menu)
+        if not menu:
+            return jsonify({"error": "Menu item not found"}), 404
+            
+        # Check if menu is being used in orders
+        if menu.order_details:
+            return jsonify({"error": "Cannot delete menu item that is used in orders"}), 400
+            
+        # Remove allergen associations
+        MenuAllergen.query.filter_by(id_menu=id_menu).delete()
+        
+        # Delete menu item
+        db.session.delete(menu)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Menu item deleted successfully"
+        }), 200
         
     except Exception as e:
         db.session.rollback()

@@ -132,3 +132,69 @@ def create_sale():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+    
+# ==================== Sale PUT Controller ====================
+
+def update_sale(id_sale):
+    """Update an existing sale"""
+    try:
+        sale = Sale.query.get(id_sale)
+        if not sale:
+            return jsonify({"error": "Sale not found"}), 404
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        # Update fields if provided
+        if 'total' in data:
+            sale.total = data['total']
+        if 'discount' in data:
+            sale.discount = data['discount']
+        if 'list' in data:
+            sale.list = data['list']
+        if 'items_count' in data:
+            sale.items_count = data['items_count']
+        if 'id_payment_method' in data:
+            sale.id_payment_method = data['id_payment_method']
+        if 'id_casher' in data:
+            sale.id_casher = data['id_casher']
+        if 'database' in data:
+            sale.database = data['database']
+            
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Sale updated successfully",
+            "sale": sale.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# ==================== Sale DELETE Controller ====================
+
+def delete_sale(id_sale):
+    """Delete a sale"""
+    try:
+        sale = Sale.query.get(id_sale)
+        if not sale:
+            return jsonify({"error": "Sale not found"}), 404
+            
+        # Update order status if needed
+        order = Order.query.get(sale.id_order)
+        if order:
+            # Assuming status ID 2 is 'In Progress' or similar
+            order.id_status = 2
+            
+        db.session.delete(sale)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Sale deleted successfully"
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

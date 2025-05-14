@@ -51,6 +51,7 @@ def get_tables_by_waiter(id_walker):
         return jsonify({"error": str(e)}), 500
     
 # ==================== Table POST Controller ====================
+
 def create_table():
     """Create a new table"""
     try:
@@ -90,3 +91,74 @@ def create_table():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+# ==================== Table PUT Controller ====================
+
+def update_table(id_table):
+    """Update an existing table"""
+    try:
+        table = Table.query.get(id_table)
+        if not table:
+            return jsonify({"error": "Table not found"}), 404
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        # Check if table number is being changed and already exists
+        if 'number' in data and data['number'] != table.number:
+            existing_table = Table.query.filter_by(number=data['number']).first()
+            if existing_table:
+                return jsonify({"error": "Table number already exists"}), 409
+                
+        # Update fields if provided
+        if 'number' in data:
+            table.number = data['number']
+        if 'capacity' in data:
+            table.capacity = data['capacity']
+        if 'section' in data:
+            table.section = data['section']
+        if 'id_status' in data:
+            table.id_status = data['id_status']
+        if 'id_walker' in data:
+            table.id_walker = data['id_walker']
+        if 'guests' in data:
+            table.guests = data['guests']
+        if 'occupied_at' in data:
+            table.occupied_at = data['occupied_at']
+            
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Table updated successfully",
+            "table": table.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# ==================== Table DELETE Controller ====================
+
+def delete_table(id_table):
+    """Delete a table"""
+    try:
+        table = Table.query.get(id_table)
+        if not table:
+            return jsonify({"error": "Table not found"}), 404
+            
+        # Check if table is being used in orders
+        if table.orders:
+            return jsonify({"error": "Cannot delete table that has orders"}), 400
+            
+        db.session.delete(table)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Table deleted successfully"
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
