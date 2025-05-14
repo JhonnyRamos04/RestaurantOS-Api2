@@ -18,7 +18,7 @@ main = Blueprint('main', __name__)
 def home():
     return jsonify({"message": "Bienvenido a la API organizada de RestaurantOS"})
 
-@main.route('/status')
+@main.route('/state')
 def status():
     return jsonify({"status": "OK", "message": "La API está funcionando correctamente"})
 

@@ -1,5 +1,5 @@
 from flask import Blueprint
-from src.controllers.order_controller import get_orders, get_order_by_id, get_orders_by_table, get_orders_by_waiter, get_orders_by_status, get_order_with_details, create_order
+from src.controllers.order_controller import delete_order, get_orders, get_order_by_id, get_orders_by_table, get_orders_by_waiter, get_orders_by_status, get_order_with_details, create_order, update_order
 
 order_bp = Blueprint('order', __name__)
 
@@ -30,3 +30,11 @@ def order_with_details(id_order):
 @order_bp.route('/', methods=['POST'])
 def add_order():
     return create_order()
+
+@order_bp.route('/<int:id_order>', methods=['PUT'])
+def modify_order(id_order):
+    return update_order(id_order)
+
+@order_bp.route('/<int:id_order>', methods=['DELETE'])
+def remove_order(id_order):
+    return delete_order(id_order)

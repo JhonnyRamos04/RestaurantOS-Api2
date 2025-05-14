@@ -1,5 +1,5 @@
 from flask import Blueprint
-from src.controllers.menu_controller import get_menus, get_menu_by_id, get_menus_by_category, get_available_menus, get_popular_menus, create_menu
+from src.controllers.menu_controller import delete_menu, get_menus, get_menu_by_id, get_menus_by_category, get_available_menus, get_popular_menus, create_menu, update_menu
 
 menu_bp = Blueprint('menu', __name__)
 
@@ -26,3 +26,11 @@ def popular_menus():
 @menu_bp.route('/', methods=['POST'])
 def add_menu():
     return create_menu()
+
+@menu_bp.route('/<int:id_menu>', methods=['PUT'])
+def modify_menu(id_menu):
+    return update_menu(id_menu)
+
+@menu_bp.route('/<int:id_menu>', methods=['DELETE'])
+def remove_menu(id_menu):
+    return delete_menu(id_menu)
